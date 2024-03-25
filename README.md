@@ -1,4 +1,5 @@
 # ShieldJS
+[![Version](https://img.shields.io/npm/v/@openfort/shield-js.svg)](https://www.npmjs.org/package/@openfort/shield-js)
 
 ShieldJS is a TypeScript library for interacting with the Openfort Shield API. It provides easy-to-use methods for retrieving and storing secrets.
 ## Features
@@ -9,7 +10,7 @@ ShieldJS is a TypeScript library for interacting with the Openfort Shield API. I
 
 To use ShieldSDK in your project, install it via npm:
 ```bash
-npm install shield-sdk
+npm install @openfort/shield-sdk
 ```
 
 ## Usage
