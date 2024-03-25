@@ -73,6 +73,7 @@ export class ShieldSDK {
         const headers = new AxiosHeaders();
         headers.set("x-api-key", this._apiKey)
         headers.set("x-auth-provider", options.authProvider)
+        headers.set("Access-Control-Allow-Origin", this._baseURL)
 
         if (this.isOpenfortAuthOptions(options)) {
             headers.setAuthorization(`Bearer ${options.openfortOAuthToken}`)
