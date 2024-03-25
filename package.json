@@ -1,0 +1,31 @@
+{
+    "name": "@openfort/shield-js",
+    "version": "0.0.1",
+    "description": "",
+    "author": "Openfort",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/openfort-xyz/shield-js.git"
+    },
+    "keywords": [],
+    "license": "MIT",
+    "main": "./dist/index.js",
+    "exports": {
+        ".": "./dist/index.js"
+    },
+    "scripts": {
+        "prebuild": "node -p \"'export const VERSION = ' + JSON.stringify(require('./package.json').version) + ';\\nexport const PACKAGE = ' + JSON.stringify(require('./package.json').name) + ';'\" > src/version.ts",
+        "build": "tsc",
+        "format": "prettier --write \"src/**/*.ts\"",
+        "lint": "eslint ./src",
+        "test": "jest --config jestconfig.json",
+        "prepublishOnly": "yarn install && yarn build"
+    },
+    "publishConfig": {
+        "registry": "https://registry.npmjs.org/"
+    },
+    "dependencies": {
+        "axios": "^1.6.8",
+        "typescript": "^5.4.3"
+    }
+}

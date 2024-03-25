@@ -1,0 +1,17 @@
+# Ignore everything
+*
+
+# But not these files...
+!/.gitignore
+!/.npmignore
+!/.npmrc
+!package.json
+!package-lock.json
+!tsconfig.json
+!README.md
+
+# And these directories...
+!src/
+!src/**/*
+!.github/
+!.github/**/*
