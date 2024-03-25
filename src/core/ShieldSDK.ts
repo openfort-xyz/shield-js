@@ -3,6 +3,8 @@ import {ShieldAuthOptions} from "../models/ShieldAuthOptions";
 import {OpenfortAuthOptions} from "../models/OpenfortAuthOptions";
 import axios, {AxiosHeaders} from "axios";
 import {CustomAuthOptions} from "../models/CustomAuthOptions";
+import {NoSecretFoundError} from "../errors/NoSecretFoundError";
+import {SecretAlreadyExistsError} from "../errors/SecretAlreadyExistsError";
 
 export class ShieldSDK {
     private readonly _baseURL: string;
@@ -18,8 +20,11 @@ export class ShieldSDK {
                 headers: this.getAuthHeaders(auth)
             });
             return res.data.secret;
-        } catch (error) {
+        } catch (error: any) {
             if (error.response) {
+                if (error.response.status === 404) {
+                    throw new NoSecretFoundError("No secret found for the given auth options")
+                }
                 console.error(`unexpected response: ${error.response.status}: ${error.response.data}`);
             } else if (error.request) {
                 console.error(`no response: ${error.request}`);
@@ -39,8 +44,11 @@ export class ShieldSDK {
                 headers: this.getAuthHeaders(auth)
             });
             return res.data.share;
-        } catch (error) {
+        } catch (error: any) {
             if (error.response) {
+                if (error.response.status === 409) {
+                    throw new SecretAlreadyExistsError("Secret already exists for the given auth options")
+                }
                 console.error(`unexpected response: ${error.response.status}: ${error.response.data}`);
             } else if (error.request) {
                 console.error(`no response: ${error.request}`);
