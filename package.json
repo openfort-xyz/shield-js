@@ -1,6 +1,6 @@
 {
     "name": "@openfort/shield-js",
-    "version": "0.0.8",
+    "version": "0.0.9",
     "description": "",
     "author": "Openfort",
     "repository": {
@@ -24,7 +24,7 @@
     "publishConfig": {
         "registry": "https://registry.npmjs.org/"
     },
-    "dependencies": {
+    "devDependencies": {
         "axios": "^1.6.7",
         "typescript": "^5.4.3"
     }
