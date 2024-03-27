@@ -63,8 +63,6 @@ export class ShieldSDK {
                 console.error(`unexpected response: ${response.status}: ${errorResponse}`);
                 throw new Error(`unexpected response: ${response.status}: ${errorResponse}`);
             }
-
-            return await response.json();
         } catch (error) {
             console.error(`unexpected error: ${error}`);
             throw error;
