@@ -8,3 +8,4 @@ export * from './models/CustomAuthOptions';
 export * from './core/ShieldSDK';
 export * from './errors/NoSecretFoundError';
 export * from './errors/SecretAlreadyExistsError';
+export * from './models/Share';

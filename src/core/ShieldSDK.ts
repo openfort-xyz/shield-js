@@ -21,7 +21,7 @@ export class ShieldSDK {
             return {
                 secret: res.data.secret,
                 userEntropy: res.data.user_entropy,
-                salt: res.data.salt
+                encryptionParameters: res.data.encryption_parameters,
             };
         } catch (error: any) {
             if (error.response) {
@@ -44,7 +44,7 @@ export class ShieldSDK {
             const res = await axios.post(`${this._baseURL}/shares`, {
                 "secret": share.secret,
                 "user_entropy": share.userEntropy,
-                "salt": share.salt
+                "encryption_parameters": share.encryptionParameters
             },  this.getAuthHeaders(auth));
             return res.data.share;
         } catch (error: any) {
