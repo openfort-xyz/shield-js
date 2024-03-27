@@ -1,7 +1,7 @@
 export interface Share {
     secret: string;
     userEntropy: boolean;
-    encryptionParameters: EncryptionParameters;
+    encryptionParameters?: EncryptionParameters;
 }
 
 export interface EncryptionParameters {
