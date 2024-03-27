@@ -1,7 +1,6 @@
 import {ShieldOptions} from "../models/ShieldOptions";
 import {ShieldAuthOptions} from "../models/ShieldAuthOptions";
 import {OpenfortAuthOptions} from "../models/OpenfortAuthOptions";
-import axios, {AxiosRequestConfig} from "axios";
 import {CustomAuthOptions} from "../models/CustomAuthOptions";
 import {NoSecretFoundError} from "../errors/NoSecretFoundError";
 import {SecretAlreadyExistsError} from "../errors/SecretAlreadyExistsError";
@@ -17,51 +16,61 @@ export class ShieldSDK {
 
     public async getSecret(auth: ShieldAuthOptions): Promise<Share> {
         try {
-            const res = await axios.get(`${this._baseURL}/shares`, this.getAuthHeaders(auth));
-            return {
-                secret: res.data.secret,
-                userEntropy: res.data.user_entropy,
-                encryptionParameters: res.data.encryption_parameters,
-            };
-        } catch (error: any) {
-            if (error.response) {
-                if (error.response.status === 404) {
-                    throw new NoSecretFoundError("No secret found for the given auth options")
+            const response = await fetch(`${this._baseURL}/shares`, {
+                method: 'GET',
+                headers: new Headers(this.getAuthHeaders(auth)),
+            });
+
+            if (!response.ok) {
+                if (response.status === 404) {
+                    throw new NoSecretFoundError("No secret found for the given auth options");
                 }
-                console.error(`unexpected response: ${error.response.status}: ${error.response.data}`);
-            } else if (error.request) {
-                console.error(`no response: ${error.request}`);
-            } else {
-                console.error(`unexpected error: ${error}`);
+                const errorResponse = await response.text();
+                console.error(`unexpected response: ${response.status}: ${errorResponse}`);
+                throw new Error(`unexpected response: ${response.status}: ${errorResponse}`);
             }
 
-            throw error
+            const data = await response.json();
+            return {
+                secret: data.secret,
+                userEntropy: data.user_entropy,
+                encryptionParameters: data.encryption_parameters,
+            };
+        } catch (error) {
+            console.error(`unexpected error: ${error}`);
+            throw error;
         }
     }
+
 
     public async storeSecret(share: Share, auth: ShieldAuthOptions): Promise<void> {
         try {
-            const res = await axios.post(`${this._baseURL}/shares`, {
-                "secret": share.secret,
-                "user_entropy": share.userEntropy,
-                "encryption_parameters": share.encryptionParameters
-            },  this.getAuthHeaders(auth));
-            return res.data.share;
-        } catch (error: any) {
-            if (error.response) {
-                if (error.response.status === 409) {
-                    throw new SecretAlreadyExistsError("Secret already exists for the given auth options")
+            const response = await fetch(`${this._baseURL}/shares`, {
+                method: 'POST',
+                headers: new Headers(this.getAuthHeaders(auth)),
+                body: JSON.stringify({
+                    "secret": share.secret,
+                    "user_entropy": share.userEntropy,
+                    "encryption_parameters": share.encryptionParameters,
+                }),
+            });
+
+            if (!response.ok) {
+                if (response.status === 409) {
+                    throw new SecretAlreadyExistsError("Secret already exists for the given auth options");
                 }
-                console.error(`unexpected response: ${error.response.status}: ${error.response.data}`);
-            } else if (error.request) {
-                console.error(`no response: ${error.request}`);
-            } else {
-                console.error(`unexpected error: ${error}`);
+                const errorResponse = await response.text();
+                console.error(`unexpected response: ${response.status}: ${errorResponse}`);
+                throw new Error(`unexpected response: ${response.status}: ${errorResponse}`);
             }
 
-            throw error
+            return await response.json();
+        } catch (error) {
+            console.error(`unexpected error: ${error}`);
+            throw error;
         }
     }
+
 
     private isOpenfortAuthOptions(options: ShieldAuthOptions): options is OpenfortAuthOptions {
         return 'openfortOAuthToken' in options;
@@ -72,31 +81,26 @@ export class ShieldSDK {
         return 'customToken' in options;
     }
 
-    private getAuthHeaders(options: ShieldAuthOptions): AxiosRequestConfig {
-        const opts = {
-            headers: {
-                "x-api-key": this._apiKey,
-                "x-auth-provider": options.authProvider,
-                "Access-Control-Allow-Origin": this._baseURL
-            }
-        }
+    private getAuthHeaders(options: ShieldAuthOptions): HeadersInit {
+        const headers: HeadersInit = {
+            "x-api-key": this._apiKey,
+            "x-auth-provider": options.authProvider,
+        };
 
         if (this.isOpenfortAuthOptions(options)) {
-            opts.headers["Authorization"] = `Bearer ${options.openfortOAuthToken}`
+            headers["Authorization"] = `Bearer ${options.openfortOAuthToken}`;
             if (options.openfortOAuthProvider) {
-                opts.headers["x-openfort-provider"] = options.openfortOAuthProvider
+                headers["x-openfort-provider"] = options.openfortOAuthProvider;
             }
-
             if (options.openfortOAuthTokenType) {
-                opts.headers["x-openfort-token-type"] = options.openfortOAuthTokenType
+                headers["x-openfort-token-type"] = options.openfortOAuthTokenType;
             }
         }
 
         if (this.isCustomAuthOptions(options)) {
-            opts.headers["Authorization"] = `Bearer ${options.customToken}`
+            headers["Authorization"] = `Bearer ${options.customToken}`;
         }
 
-        return opts;
+        return headers;
     }
-
 }
