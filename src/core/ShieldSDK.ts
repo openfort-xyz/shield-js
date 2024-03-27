@@ -85,6 +85,7 @@ export class ShieldSDK {
         const headers: HeadersInit = {
             "x-api-key": this._apiKey,
             "x-auth-provider": options.authProvider,
+            "Access-Control-Allow-Origin": this._baseURL
         };
 
         if (this.isOpenfortAuthOptions(options)) {
