@@ -1,7 +1,7 @@
 import {ShieldOptions} from "../models/ShieldOptions";
 import {ShieldAuthOptions} from "../models/ShieldAuthOptions";
 import {OpenfortAuthOptions} from "../models/OpenfortAuthOptions";
-import axios, {AxiosHeaders, AxiosRequestConfig} from "axios";
+import axios, {AxiosRequestConfig} from "axios";
 import {CustomAuthOptions} from "../models/CustomAuthOptions";
 import {NoSecretFoundError} from "../errors/NoSecretFoundError";
 import {SecretAlreadyExistsError} from "../errors/SecretAlreadyExistsError";
