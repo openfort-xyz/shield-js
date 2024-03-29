@@ -3,6 +3,7 @@ export enum OpenfortOAuthProvider {
     FIREBASE = "firebase",
     GOOGLE = "google",
     LOOTLOCKER = "lootlocker",
+    SUPABASE = "supabase",
     PLAYFAB = "playfab",
     CUSTOM = "custom",
     OIDC = "oidc",
