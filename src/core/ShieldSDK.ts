@@ -34,7 +34,12 @@ export class ShieldSDK {
             return {
                 secret: data.secret,
                 userEntropy: data.user_entropy,
-                encryptionParameters: data.encryption_parameters,
+                encryptionParameters: {
+                    salt: data.salt,
+                    iterations: data.iterations,
+                    length: data.length,
+                    digest: data.digest,
+                },
             };
         } catch (error) {
             console.error(`unexpected error: ${error}`);
@@ -51,7 +56,10 @@ export class ShieldSDK {
                 body: JSON.stringify({
                     "secret": share.secret,
                     "user_entropy": share.userEntropy,
-                    "encryption_parameters": share.encryptionParameters,
+                    "salt": share.encryptionParameters?.salt,
+                    "iterations": share.encryptionParameters?.iterations,
+                    "length": share.encryptionParameters?.length,
+                    "digest": share.encryptionParameters?.digest,
                 }),
             });
 
