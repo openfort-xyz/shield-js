@@ -33,7 +33,7 @@ export class ShieldSDK {
             const data = await response.json();
             return {
                 secret: data.secret,
-                userEntropy: data.user_entropy,
+                entropy: data.entropy,
                 encryptionParameters: {
                     salt: data.salt,
                     iterations: data.iterations,
@@ -55,11 +55,12 @@ export class ShieldSDK {
                 headers: new Headers(this.getAuthHeaders(auth)),
                 body: JSON.stringify({
                     "secret": share.secret,
-                    "user_entropy": share.userEntropy,
+                    "entropy": share.entropy,
                     "salt": share.encryptionParameters?.salt,
                     "iterations": share.encryptionParameters?.iterations,
                     "length": share.encryptionParameters?.length,
                     "digest": share.encryptionParameters?.digest,
+                    "encryption_part": auth.encryptionPart || "",
                 }),
             });
 
@@ -93,6 +94,10 @@ export class ShieldSDK {
             "x-auth-provider": options.authProvider,
             "Access-Control-Allow-Origin": this._baseURL
         };
+
+        if (options.encryptionPart) {
+            headers["x-encryption-part"] = options.encryptionPart;
+        }
 
         if (this.isOpenfortAuthOptions(options)) {
             headers["Authorization"] = `Bearer ${options.openfortOAuthToken}`;
