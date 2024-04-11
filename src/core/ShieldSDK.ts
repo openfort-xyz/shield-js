@@ -47,6 +47,24 @@ export class ShieldSDK {
         }
     }
 
+    public async deleteSecret(auth: ShieldAuthOptions): Promise<void> {
+        try {
+            const response = await fetch(`${this._baseURL}/shares`, {
+                method: 'DELETE',
+                headers: new Headers(this.getAuthHeaders(auth)),
+            });
+
+            if (!response.ok) {
+                const errorResponse = await response.text();
+                console.error(`unexpected response: ${response.status}: ${errorResponse}`);
+                throw new Error(`unexpected response: ${response.status}: ${errorResponse}`);
+            }
+        } catch (error) {
+            console.error(`unexpected error: ${error}`);
+            throw error;
+        }
+    }
+
 
     public async storeSecret(share: Share, auth: ShieldAuthOptions): Promise<void> {
         try {

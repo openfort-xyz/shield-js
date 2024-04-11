@@ -42,6 +42,11 @@ const authOptions: ShieldAuthOptions = {
 await shieldSDK.storeSecret("your-secret", authOptions);
 ```
 
+### Deleting a Secret
+```typescript
+await shieldSDK.deleteSecret(authOptions);
+```
+
 ### Retrieving a Secret
 ```typescript
 const secret = await shieldSDK.getSecret(authOptions);
