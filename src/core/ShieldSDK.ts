@@ -65,10 +65,9 @@ export class ShieldSDK {
         }
     }
 
-
-    public async storeSecret(share: Share, auth: ShieldAuthOptions): Promise<void> {
+    private async createSecret(path: string, share: Share, auth: ShieldAuthOptions) {
         try {
-            const response = await fetch(`${this._baseURL}/shares`, {
+            const response = await fetch(`${this._baseURL}/${path}`, {
                 method: 'POST',
                 headers: new Headers(this.getAuthHeaders(auth)),
                 body: JSON.stringify({
@@ -96,6 +95,14 @@ export class ShieldSDK {
         }
     }
 
+    public async preRegister(share: Share, auth: ShieldAuthOptions): Promise<void> {
+        await this.createSecret("admin/preregister", share, auth);
+    }
+
+    public async storeSecret(share: Share, auth: ShieldAuthOptions): Promise<void> {
+        await this.createSecret("shares", share, auth);
+    }
+
 
     private isOpenfortAuthOptions(options: ShieldAuthOptions): options is OpenfortAuthOptions {
         return 'openfortOAuthToken' in options;
@@ -112,6 +119,18 @@ export class ShieldSDK {
             "x-auth-provider": options.authProvider,
             "Access-Control-Allow-Origin": this._baseURL
         };
+
+        if (options.externalUserId) {
+            headers["x-user-id"] = options.externalUserId;
+        }
+
+        if (options.apiKey) {
+            headers["x-api-key"] = options.apiKey;
+        }
+
+        if (options.apiSecret) {
+            headers["x-api-secret"] = options.apiSecret;
+        }
 
         if (options.encryptionPart) {
             headers["x-encryption-part"] = options.encryptionPart;
