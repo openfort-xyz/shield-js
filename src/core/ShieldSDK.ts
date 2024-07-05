@@ -78,6 +78,7 @@ export class ShieldSDK {
                     "length": share.encryptionParameters?.length,
                     "digest": share.encryptionParameters?.digest,
                     "encryption_part": auth.encryptionPart || "",
+                    "encryption_session": auth.encryptionSession || "",
                 }),
             });
 
@@ -134,6 +135,10 @@ export class ShieldSDK {
 
         if (options.encryptionPart) {
             headers["x-encryption-part"] = options.encryptionPart;
+        }
+
+        if (options.encryptionSession) {
+            headers["x-encryption-session"] = options.encryptionSession;
         }
 
         if (this.isOpenfortAuthOptions(options)) {
