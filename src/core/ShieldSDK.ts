@@ -9,16 +9,17 @@ import {Share} from "../models/Share";
 export class ShieldSDK {
     private readonly _baseURL: string;
     private readonly _apiKey: string;
+    private readonly _requestIdHeader = "x-request-id";
     constructor({ baseURL = "https://shield.openfort.xyz", apiKey }: ShieldOptions) {
         this._apiKey = apiKey;
         this._baseURL = baseURL;
     }
 
-    public async getSecret(auth: ShieldAuthOptions): Promise<Share> {
+    public async getSecret(auth: ShieldAuthOptions, requestId?: string): Promise<Share> {
         try {
             const response = await fetch(`${this._baseURL}/shares`, {
                 method: 'GET',
-                headers: new Headers(this.getAuthHeaders(auth)),
+                headers: new Headers(this.getAuthHeaders(auth, requestId)),
             });
 
             if (!response.ok) {
@@ -47,11 +48,11 @@ export class ShieldSDK {
         }
     }
 
-    public async deleteSecret(auth: ShieldAuthOptions): Promise<void> {
+    public async deleteSecret(auth: ShieldAuthOptions, requestId?: string): Promise<void> {
         try {
             const response = await fetch(`${this._baseURL}/shares`, {
                 method: 'DELETE',
-                headers: new Headers(this.getAuthHeaders(auth)),
+                headers: new Headers(this.getAuthHeaders(auth, requestId)),
             });
 
             if (!response.ok) {
@@ -65,11 +66,11 @@ export class ShieldSDK {
         }
     }
 
-    private async createSecret(path: string, share: Share, auth: ShieldAuthOptions) {
+    private async createSecret(path: string, share: Share, auth: ShieldAuthOptions, requestId?: string) {
         try {
             const response = await fetch(`${this._baseURL}/${path}`, {
                 method: 'POST',
-                headers: new Headers(this.getAuthHeaders(auth)),
+                headers: new Headers(this.getAuthHeaders(auth, requestId)),
                 body: JSON.stringify({
                     "secret": share.secret,
                     "entropy": share.entropy,
@@ -96,12 +97,12 @@ export class ShieldSDK {
         }
     }
 
-    public async preRegister(share: Share, auth: ShieldAuthOptions): Promise<void> {
-        await this.createSecret("admin/preregister", share, auth);
+    public async preRegister(share: Share, auth: ShieldAuthOptions, requestId?: string): Promise<void> {
+        await this.createSecret("admin/preregister", share, auth, requestId);
     }
 
-    public async storeSecret(share: Share, auth: ShieldAuthOptions): Promise<void> {
-        await this.createSecret("shares", share, auth);
+    public async storeSecret(share: Share, auth: ShieldAuthOptions, requestId?: string): Promise<void> {
+        await this.createSecret("shares", share, auth, requestId);
     }
 
 
@@ -114,12 +115,16 @@ export class ShieldSDK {
         return 'customToken' in options;
     }
 
-    private getAuthHeaders(options: ShieldAuthOptions): HeadersInit {
+    private getAuthHeaders(options: ShieldAuthOptions, requestId?: string): HeadersInit {
         const headers: HeadersInit = {
             "x-api-key": this._apiKey,
             "x-auth-provider": options.authProvider,
-            "Access-Control-Allow-Origin": this._baseURL
+            "Access-Control-Allow-Origin": this._baseURL,
         };
+
+        if (requestId) {
+            headers[this._requestIdHeader] = requestId;
+        }
 
         if (options.externalUserId) {
             headers["x-user-id"] = options.externalUserId;
