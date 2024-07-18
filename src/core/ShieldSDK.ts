@@ -5,6 +5,7 @@ import {CustomAuthOptions} from "../models/CustomAuthOptions";
 import {NoSecretFoundError} from "../errors/NoSecretFoundError";
 import {SecretAlreadyExistsError} from "../errors/SecretAlreadyExistsError";
 import {Share} from "../models/Share";
+import {EncryptionPartMissingError} from "../errors/EncryptionPartMissingError";
 
 export class ShieldSDK {
     private readonly _baseURL: string;
@@ -27,6 +28,9 @@ export class ShieldSDK {
                     throw new NoSecretFoundError("No secret found for the given auth options");
                 }
                 const errorResponse = await response.text();
+                if (errorResponse.includes("EC_MISSING")) {
+                    throw new EncryptionPartMissingError("Encryption part missing");
+                }
                 console.error(`unexpected response: ${response.status}: ${errorResponse}`);
                 throw new Error(`unexpected response: ${response.status}: ${errorResponse}`);
             }
@@ -57,6 +61,9 @@ export class ShieldSDK {
 
             if (!response.ok) {
                 const errorResponse = await response.text();
+                if (errorResponse.includes("EC_MISSING")) {
+                    throw new EncryptionPartMissingError("Encryption part missing");
+                }
                 console.error(`unexpected response: ${response.status}: ${errorResponse}`);
                 throw new Error(`unexpected response: ${response.status}: ${errorResponse}`);
             }
@@ -84,10 +91,13 @@ export class ShieldSDK {
             });
 
             if (!response.ok) {
+                const errorResponse = await response.text();
+                if (errorResponse.includes("EC_MISSING")) {
+                    throw new EncryptionPartMissingError("Encryption part missing");
+                }
                 if (response.status === 409) {
                     throw new SecretAlreadyExistsError("Secret already exists for the given auth options");
                 }
-                const errorResponse = await response.text();
                 console.error(`unexpected response: ${response.status}: ${errorResponse}`);
                 throw new Error(`unexpected response: ${response.status}: ${errorResponse}`);
             }
