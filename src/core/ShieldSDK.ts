@@ -119,12 +119,12 @@ export class ShieldSDK {
             });
 
             if (!response.ok) {
-                if (response.status === 409) {
-                    throw new SecretAlreadyExistsError("Secret already exists for the given auth options");
-                }
                 const errorResponse = await response.text();
                 if (errorResponse.includes("EC_MISSING")) {
                     throw new EncryptionPartMissingError("Encryption part missing");
+                }
+                if (response.status === 409) {
+                    throw new SecretAlreadyExistsError("Secret already exists for the given auth options");
                 }
                 console.error(`unexpected response: ${response.status}: ${errorResponse}`);
                 throw new Error(`unexpected response: ${response.status}: ${errorResponse}`);
