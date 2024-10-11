@@ -6,4 +6,10 @@ export enum OpenfortOAuthProvider {
     PLAYFAB = "playfab",
     CUSTOM = "custom",
     OIDC = "oidc",
+    GOOGLE = "google",
+    TWITTER = "twitter",
+    FACEBOOK = "facebook",
+    DISCORD = "discord",
+    EPIC_GAMES = "epic_games",
+    TELEGRAM = "telegram",
 }
