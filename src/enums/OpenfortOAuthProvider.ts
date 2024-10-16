@@ -12,4 +12,5 @@ export enum OpenfortOAuthProvider {
     DISCORD = "discord",
     EPIC_GAMES = "epic_games",
     TELEGRAM = "telegram",
+    TELEGRAM_MINI_APP = "telegramMiniApp",
 }
