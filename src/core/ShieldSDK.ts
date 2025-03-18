@@ -31,7 +31,7 @@ export class ShieldSDK {
             }
 
             const data = await response.json();
-            return data.map((share: any) => {
+            return data.shares.map((share: any) => {
                 return {
                     secret: share.secret,
                     entropy: share.entropy,
