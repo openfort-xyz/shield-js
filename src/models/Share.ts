@@ -2,6 +2,8 @@ export interface Share {
     secret: string;
     entropy: entropy;
     encryptionParameters?: EncryptionParameters;
+    keychainId?: string
+    reference?: string;
 }
 
 export enum entropy {

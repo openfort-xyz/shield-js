@@ -16,6 +16,41 @@ export class ShieldSDK {
         this._baseURL = baseURL;
     }
 
+    public async keychain(auth: ShieldAuthOptions, reference?: string, requestId?: string): Promise<Share[]> {
+        try {
+            const url = reference ? `${this._baseURL}/keychain?reference=${reference}` : `${this._baseURL}/keychain`;
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: new Headers(this.getAuthHeaders(auth, requestId)),
+            });
+
+            if (!response.ok) {
+                const errorResponse = await response.text();
+                console.error(`unexpected response: ${response.status}: ${errorResponse}`);
+                throw new Error(`unexpected response: ${response.status}: ${errorResponse}`);
+            }
+
+            const data = await response.json();
+            return data.shares.map((share: any) => {
+                return {
+                    secret: share.secret,
+                    entropy: share.entropy,
+                    encryptionParameters: {
+                        salt: share.salt,
+                        iterations: share.iterations,
+                        length: share.length,
+                        digest: share.digest,
+                    },
+                    keychainId: share.keychain_id,
+                    reference: share.reference,
+                };
+            });
+        } catch (error) {
+            console.error(`unexpected error: ${error}`);
+            throw error;
+        }
+    }
+
     public async getSecret(auth: ShieldAuthOptions, requestId?: string): Promise<Share> {
         try {
             const response = await fetch(`${this._baseURL}/shares`, {
@@ -45,7 +80,42 @@ export class ShieldSDK {
                     length: data.length,
                     digest: data.digest,
                 },
+                keychainId: data.keychain_id,
+                reference: data.reference,
             };
+        } catch (error) {
+            console.error(`unexpected error: ${error}`);
+            throw error;
+        }
+    }
+
+    public async updateSecret(auth: ShieldAuthOptions, share: Share, requestId?: string): Promise<void> {
+        try {
+            const response = await fetch(`${this._baseURL}/shares`, {
+                method: 'PUT',
+                headers: new Headers(this.getAuthHeaders(auth, requestId)),
+                body: JSON.stringify({
+                    "secret": share.secret,
+                    "entropy": share.entropy,
+                    "salt": share.encryptionParameters?.salt,
+                    "iterations": share.encryptionParameters?.iterations,
+                    "length": share.encryptionParameters?.length,
+                    "digest": share.encryptionParameters?.digest,
+                    "encryption_part": auth.encryptionPart || "",
+                    "encryption_session": auth.encryptionSession || "",
+                    "reference": share.reference || "",
+                    "keychain_id": share.keychainId || "",
+                }),
+            });
+
+            if (!response.ok) {
+                const errorResponse = await response.text();
+                if (errorResponse.includes("EC_MISSING")) {
+                    throw new EncryptionPartMissingError("Encryption part missing");
+                }
+                console.error(`unexpected response: ${response.status}: ${errorResponse}`);
+                throw new Error(`unexpected response: ${response.status}: ${errorResponse}`);
+            }
         } catch (error) {
             console.error(`unexpected error: ${error}`);
             throw error;
@@ -61,9 +131,6 @@ export class ShieldSDK {
 
             if (!response.ok) {
                 const errorResponse = await response.text();
-                if (errorResponse.includes("EC_MISSING")) {
-                    throw new EncryptionPartMissingError("Encryption part missing");
-                }
                 console.error(`unexpected response: ${response.status}: ${errorResponse}`);
                 throw new Error(`unexpected response: ${response.status}: ${errorResponse}`);
             }
@@ -87,6 +154,8 @@ export class ShieldSDK {
                     "digest": share.encryptionParameters?.digest,
                     "encryption_part": auth.encryptionPart || "",
                     "encryption_session": auth.encryptionSession || "",
+                    "reference": share.reference || "",
+                    "keychain_id": share.keychainId || "",
                 }),
             });
 
