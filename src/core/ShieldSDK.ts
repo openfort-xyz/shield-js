@@ -122,9 +122,14 @@ export class ShieldSDK {
         }
     }
 
-    public async deleteSecret(auth: ShieldAuthOptions, requestId?: string): Promise<void> {
+    public async deleteSecret(auth: ShieldAuthOptions, requestId?: string, reference?: string): Promise<void> {
         try {
-            const response = await fetch(`${this._baseURL}/shares`, {
+            let url = `${this._baseURL}/shares`;
+            if (reference && reference !== null && reference !== undefined) {
+                url = `${url}/${reference}`;
+            }
+
+            const response = await fetch(url, {
                 method: 'DELETE',
                 headers: new Headers(this.getAuthHeaders(auth, requestId)),
             });
