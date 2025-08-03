@@ -1,17 +1,17 @@
-import {ShieldOptions} from "../models/ShieldOptions";
-import {ShieldAuthOptions} from "../models/ShieldAuthOptions";
-import {OpenfortAuthOptions} from "../models/OpenfortAuthOptions";
-import {CustomAuthOptions} from "../models/CustomAuthOptions";
-import {NoSecretFoundError} from "../errors/NoSecretFoundError";
-import {SecretAlreadyExistsError} from "../errors/SecretAlreadyExistsError";
-import {Share} from "../models/Share";
-import {EncryptionPartMissingError} from "../errors/EncryptionPartMissingError";
+import { ShieldOptions } from "../models/ShieldOptions";
+import { ShieldAuthOptions } from "../models/ShieldAuthOptions";
+import { OpenfortAuthOptions } from "../models/OpenfortAuthOptions";
+import { CustomAuthOptions } from "../models/CustomAuthOptions";
+import { NoSecretFoundError } from "../errors/NoSecretFoundError";
+import { SecretAlreadyExistsError } from "../errors/SecretAlreadyExistsError";
+import { Share } from "../models/Share";
+import { EncryptionPartMissingError } from "../errors/EncryptionPartMissingError";
 
 export class ShieldSDK {
     private readonly _baseURL: string;
     private readonly _apiKey: string;
     private readonly _requestIdHeader = "x-request-id";
-    constructor({ baseURL = "https://shield.openfort.xyz", apiKey }: ShieldOptions) {
+    constructor({ baseURL = "https://shield.openfort.io", apiKey }: ShieldOptions) {
         this._apiKey = apiKey;
         this._baseURL = baseURL;
     }
@@ -122,9 +122,14 @@ export class ShieldSDK {
         }
     }
 
-    public async deleteSecret(auth: ShieldAuthOptions, requestId?: string): Promise<void> {
+    public async deleteSecret(auth: ShieldAuthOptions, requestId?: string, reference?: string): Promise<void> {
         try {
-            const response = await fetch(`${this._baseURL}/shares`, {
+            let url = `${this._baseURL}/shares`;
+            if (reference && reference !== null && reference !== undefined) {
+                url = `${url}/${reference}`;
+            }
+
+            const response = await fetch(url, {
                 method: 'DELETE',
                 headers: new Headers(this.getAuthHeaders(auth, requestId)),
             });

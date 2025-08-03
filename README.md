@@ -27,7 +27,7 @@ import { ShieldSDK, ShieldOptions, ShieldAuthOptions } from 'shield-sdk';
 const shieldOptions: ShieldOptions = {
 apiKey: 'your-api-key',
 // Optional: Specify a custom base URL
-baseURL: 'https://shield.openfort.xyz'
+baseURL: 'https://shield.openfort.io'
 };
 
 const shieldSDK = new ShieldSDK(shieldOptions);
@@ -84,8 +84,6 @@ The Provider and Token Type enums are defined as follows:
 export enum OpenfortOAuthProvider {
     ACCELBYTE = "accelbyte",
     FIREBASE = "firebase",
-    APPLE_NATIVE = "apple_native",
-    GOOGLE_NATIVE = "google_native",
     LOOTLOCKER = "lootlocker",
     SUPABASE = "supabase",
     PLAYFAB = "playfab",
