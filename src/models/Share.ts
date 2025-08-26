@@ -10,6 +10,7 @@ export enum entropy {
     none = "none",
     user = "user",
     project = "project",
+    passkey = "passkey",
 }
 
 export interface EncryptionParameters {
