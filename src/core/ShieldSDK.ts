@@ -145,6 +145,52 @@ export class ShieldSDK {
         }
     }
 
+    private async getEncryptionMethodBulk(url: string, bodyListname: string, auth: ShieldAuthOptions, requestId: string, keys: string[]): Promise<Map<string, string>> {
+        try {
+            // both methods (references and users) expect a similar input JSON
+            // reference/bulk expects "references": string[] and user/bulk expects "user_ids": string[]
+            const body = JSON.stringify({ [bodyListname]: keys });
+
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: new Headers(this.getAuthHeaders(auth, requestId)),
+                body: body
+            });
+
+            if (!response.ok) {
+                const errorResponse = await response.text();
+                console.error(`unexpected response: ${response.status}: ${errorResponse}`);
+                throw new Error(`unexpected response: ${response.status}: ${errorResponse}`);
+            }
+
+            const data = await response.json();
+
+            const returnValue: Map<string, string> = new Map();
+            
+            for (const key in data.encryption_types) {
+                const info = data.encryption_types[key]
+                // Shield returns either found or not found regardless of input references/users to avoid falling
+                // in "snitchy" 403 situations, we'll only care about found occurences here though
+                if (info.status === "found") {
+                    returnValue.set(key, info.status.encryption_type);
+                }
+            }
+
+            return returnValue;
+        } catch (error) {
+            console.error(`unexpedted error: ${error}`);
+            throw error;
+        }
+    }
+
+    public async getEncryptionMethodsBySignerReferences(auth: ShieldAuthOptions, requestId: string, signers: string[]): Promise<Map<string, string>> {
+        return this.getEncryptionMethodBulk(`${this._baseURL}/shares/encryption/reference/bulk`, 'references', auth, requestId, signers);
+    }
+
+    public async getEncryptionMethodsByOwnerId(auth: ShieldAuthOptions, requestId: string, users: string[]): Promise<Map<string, string>> {
+        return this.getEncryptionMethodBulk(`${this._baseURL}/shares/encryption/user/bulk`, 'user_ids', auth, requestId, users);
+    }
+
     private async createSecret(path: string, share: Share, auth: ShieldAuthOptions, requestId?: string) {
         try {
             const response = await fetch(`${this._baseURL}/${path}`, {
