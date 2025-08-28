@@ -145,6 +145,47 @@ export class ShieldSDK {
         }
     }
 
+    private async getEncryptionMethodBulk(url: string, auth: ShieldAuthOptions, requestId: string, keys: string[]): Promise<Map<string, string>> {
+        try {
+
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: new Headers(this.getAuthHeaders(auth, requestId)),
+                body: JSON.stringify(keys),
+            });
+
+            if (!response.ok) {
+                const errorResponse = await response.text();
+                console.error(`unexpected response: ${response.status}: ${errorResponse}`);
+                throw new Error(`unexpected response: ${response.status}: ${errorResponse}`);
+            }
+
+            const data = await response.json();
+
+            const returnValue: Map<string, string> = new Map();
+            
+            for (const key in data.encryption_types) {
+                const info = data.encryption_types[key]
+                if (info.status === "found") {
+                    returnValue.set(key, info.status.encryption_type);
+                }
+            }
+
+            return returnValue;
+        } catch (error) {
+            console.error(`unexpedted error: ${error}`);
+            throw error;
+        }
+    }
+
+    public async getEncryptionMethodsBySignerReferences(auth: ShieldAuthOptions, requestId: string, signers: string[]): Promise<Map<string, string>> {
+        return this.getEncryptionMethodBulk(`${this._baseURL}/shares/encryption/reference/bulk`, auth, requestId, signers);
+    }
+
+    public async getEncryptionMethodsByOwnerId(auth: ShieldAuthOptions, requestId: string, users: string[]): Promise<Map<string, string>> {
+        return this.getEncryptionMethodBulk(`${this._baseURL}/shares/encryption/user/bulk`, auth, requestId, users);
+    }
+
     private async createSecret(path: string, share: Share, auth: ShieldAuthOptions, requestId?: string) {
         try {
             const response = await fetch(`${this._baseURL}/${path}`, {
