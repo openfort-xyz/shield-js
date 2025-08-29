@@ -166,13 +166,13 @@ export class ShieldSDK {
             const data = await response.json();
 
             const returnValue: Map<string, string> = new Map();
-            
+
             for (const key in data.encryption_types) {
                 const info = data.encryption_types[key]
                 // Shield returns either found or not found regardless of input references/users to avoid falling
                 // in "snitchy" 403 situations, we'll only care about found occurences here though
-                if (info.status === "found") {
-                    returnValue.set(key, info.status.encryption_type);
+                if (info['status'] === "found") {
+                    returnValue[key] = info['encryption_type'];
                 }
             }
 
