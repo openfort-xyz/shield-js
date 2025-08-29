@@ -171,14 +171,14 @@ export class ShieldSDK {
                 const info = data.encryption_types[key]
                 // Shield returns either found or not found regardless of input references/users to avoid falling
                 // in "snitchy" 403 situations, we'll only care about found occurences here though
-                if (info['status'] === "found") {
-                    returnValue[key] = info['encryption_type'];
+                if (info['status'] === 'found') {
+                    returnValue.set(key, info['encryption_type']);
                 }
             }
 
             return returnValue;
         } catch (error) {
-            console.error(`unexpedted error: ${error}`);
+            console.error(`unexpected error: ${error}`);
             throw error;
         }
     }
