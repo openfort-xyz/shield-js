@@ -145,16 +145,14 @@ export class ShieldSDK {
         }
     }
 
-    private async getEncryptionMethodBulk(url: string, bodyListname: string, auth: ShieldAuthOptions, requestId: string, keys: string[]): Promise<Map<string, string>> {
+    private async getEncryptionMethodBulk(url: string, bodyListname: string, auth: ShieldAuthOptions, keys: string[], requestId?: string): Promise<Map<string, string>> {
         try {
             // both methods (references and users) expect a similar input JSON
             // reference/bulk expects "references": string[] and user/bulk expects "user_ids": string[]
-            const body = JSON.stringify({ [bodyListname]: keys });
-
             const response = await fetch(url, {
                 method: 'POST',
                 headers: new Headers(this.getAuthHeaders(auth, requestId)),
-                body: body
+                body: JSON.stringify({ [bodyListname]: keys })
             });
 
             if (!response.ok) {
@@ -183,12 +181,12 @@ export class ShieldSDK {
         }
     }
 
-    public async getEncryptionMethodsBySignerReferences(auth: ShieldAuthOptions, requestId: string, signers: string[]): Promise<Map<string, string>> {
-        return this.getEncryptionMethodBulk(`${this._baseURL}/shares/encryption/reference/bulk`, 'references', auth, requestId, signers);
+    public async getEncryptionMethodsBySignerReferences(auth: ShieldAuthOptions, signers: string[], requestId?: string): Promise<Map<string, string>> {
+        return this.getEncryptionMethodBulk(`${this._baseURL}/shares/encryption/reference/bulk`, 'references', auth, signers, requestId);
     }
 
-    public async getEncryptionMethodsByOwnerId(auth: ShieldAuthOptions, requestId: string, users: string[]): Promise<Map<string, string>> {
-        return this.getEncryptionMethodBulk(`${this._baseURL}/shares/encryption/user/bulk`, 'user_ids', auth, requestId, users);
+    public async getEncryptionMethodsByOwnerId(auth: ShieldAuthOptions, users: string[], requestId?: string): Promise<Map<string, string>> {
+        return this.getEncryptionMethodBulk(`${this._baseURL}/shares/encryption/user/bulk`, 'user_ids', auth, users, requestId);
     }
 
     private async createSecret(path: string, share: Share, auth: ShieldAuthOptions, requestId?: string) {

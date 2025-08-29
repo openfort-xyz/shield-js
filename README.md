@@ -53,6 +53,16 @@ const secret = await shieldSDK.getSecret(authOptions);
 console.log(secret);
 ```
 
+### Get Encryption Methods from Reference IDs
+```typescript
+const encryptionMethodMap = await shieldSDK.getEncryptionMethodsBySignerReferences(authOptions, referenceList);
+```
+
+### Get Encryption Methods from User IDs
+```typescript
+const encryptionMethodMap = await shieldSDK.getEncryptionMethodsByOwnerId(authOptions, userList);
+```
+
 ### API Reference
 - `storeSecret(secret: string, auth: ShieldAuthOptions): Promise<void>`
 - `getSecret(auth: ShieldAuthOptions): Promise<string>`
