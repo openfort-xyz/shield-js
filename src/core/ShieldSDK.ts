@@ -6,31 +6,60 @@ import { NoSecretFoundError } from "../errors/NoSecretFoundError";
 import { SecretAlreadyExistsError } from "../errors/SecretAlreadyExistsError";
 import { Share } from "../models/Share";
 import { EncryptionPartMissingError } from "../errors/EncryptionPartMissingError";
+import axios, { AxiosInstance, AxiosResponse } from "axios";
+import axiosRetry from "axios-retry";
 
 export class ShieldSDK {
+
+    private readonly _requestRetries = 3;
+    private readonly _retryDelayFunc = retryCount => 500. * Math.pow(2, retryCount);
+
     private readonly _baseURL: string;
     private readonly _apiKey: string;
     private readonly _requestIdHeader = "x-request-id";
+
+    private _client: AxiosInstance;
+
     constructor({ baseURL = "https://shield.openfort.io", apiKey }: ShieldOptions) {
         this._apiKey = apiKey;
         this._baseURL = baseURL;
+        this.initAxiosClient();
+    }
+
+    private initAxiosClient() {
+        this._client = axios.create({ baseURL: this._baseURL });
+        axiosRetry(this._client, {
+            retries: this._requestRetries,
+            retryDelay: this._retryDelayFunc,
+            retryCondition: error =>
+                axiosRetry.isNetworkOrIdempotentRequestError(error) || error.response?.status >= axios.HttpStatusCode.InternalServerError,
+        });
+    }
+
+    private displayableAxiosError(err: Error): string {
+        if (axios.isAxiosError(err)) {
+            const code = err.code ?? 'NO_CODE';
+            const status = err.response?.status ?? 'NO_STATUS';
+            const body = err.response?.data ? JSON.stringify(err.response.data) : 'NO_BODY';
+            return `[AxiosError] ${err.message}, code=${code}, status=${status}, body=${body}`;
+        }
+        return String(err);
+    }
+
+    private throwableAxiosError(err: Error): string {
+        const errorString = this.displayableAxiosError(err);
+        console.error(errorString);
+        return errorString;
     }
 
     public async keychain(auth: ShieldAuthOptions, reference?: string, requestId?: string): Promise<Share[]> {
         try {
             const url = reference ? `${this._baseURL}/keychain?reference=${reference}` : `${this._baseURL}/keychain`;
-            const response = await fetch(url, {
-                method: 'GET',
-                headers: new Headers(this.getAuthHeaders(auth, requestId)),
-            });
 
-            if (!response.ok) {
-                const errorResponse = await response.text();
-                console.error(`unexpected response: ${response.status}: ${errorResponse}`);
-                throw new Error(`unexpected response: ${response.status}: ${errorResponse}`);
-            }
+            const response = await this._client.get(url, { headers: this.getAuthHeaders(auth, requestId) });
 
-            const data = await response.json();
+            const data = response.data;
+
             return data.shares.map((share: any) => {
                 return {
                     secret: share.secret,
@@ -46,31 +75,14 @@ export class ShieldSDK {
                 };
             });
         } catch (error) {
-            console.error(`unexpected error: ${error}`);
-            throw error;
+            throw new Error(this.throwableAxiosError(error));
         }
     }
 
     public async getSecret(auth: ShieldAuthOptions, requestId?: string): Promise<Share> {
         try {
-            const response = await fetch(`${this._baseURL}/shares`, {
-                method: 'GET',
-                headers: new Headers(this.getAuthHeaders(auth, requestId)),
-            });
-
-            if (!response.ok) {
-                if (response.status === 404) {
-                    throw new NoSecretFoundError("No secret found for the given auth options");
-                }
-                const errorResponse = await response.text();
-                if (errorResponse.includes("EC_MISSING")) {
-                    throw new EncryptionPartMissingError("Encryption part missing");
-                }
-                console.error(`unexpected response: ${response.status}: ${errorResponse}`);
-                throw new Error(`unexpected response: ${response.status}: ${errorResponse}`);
-            }
-
-            const data = await response.json();
+            const response = await this._client.get(`${this._baseURL}/shares`, { headers: this.getAuthHeaders(auth, requestId) });
+            const data = await response.data;
             return {
                 secret: data.secret,
                 entropy: data.entropy,
@@ -84,41 +96,39 @@ export class ShieldSDK {
                 reference: data.reference,
             };
         } catch (error) {
-            console.error(`unexpected error: ${error}`);
-            throw error;
+            if (axios.isAxiosError(error) && error.response) {
+                if (error.response.status === axios.HttpStatusCode.NotFound) {
+                    throw new NoSecretFoundError("No secret found for the given auth options");
+                }
+                const errorContent = error.response.data;
+                if (errorContent.code.includes("EC_MISSING")) {
+                    throw new EncryptionPartMissingError("Encryption part missing");
+                }
+            }
+            throw new Error(this.throwableAxiosError(error));
         }
     }
 
     public async updateSecret(auth: ShieldAuthOptions, share: Share, requestId?: string): Promise<void> {
         try {
-            const response = await fetch(`${this._baseURL}/shares`, {
-                method: 'PUT',
-                headers: new Headers(this.getAuthHeaders(auth, requestId)),
-                body: JSON.stringify({
-                    "secret": share.secret,
-                    "entropy": share.entropy,
-                    "salt": share.encryptionParameters?.salt,
-                    "iterations": share.encryptionParameters?.iterations,
-                    "length": share.encryptionParameters?.length,
-                    "digest": share.encryptionParameters?.digest,
-                    "encryption_part": auth.encryptionPart || "",
-                    "encryption_session": auth.encryptionSession || "",
-                    "reference": share.reference || "",
-                    "keychain_id": share.keychainId || "",
-                }),
-            });
-
-            if (!response.ok) {
-                const errorResponse = await response.text();
-                if (errorResponse.includes("EC_MISSING")) {
-                    throw new EncryptionPartMissingError("Encryption part missing");
-                }
-                console.error(`unexpected response: ${response.status}: ${errorResponse}`);
-                throw new Error(`unexpected response: ${response.status}: ${errorResponse}`);
-            }
+            const requestBody = {
+                "secret": share.secret,
+                "entropy": share.entropy,
+                "salt": share.encryptionParameters?.salt,
+                "iterations": share.encryptionParameters?.iterations,
+                "length": share.encryptionParameters?.length,
+                "digest": share.encryptionParameters?.digest,
+                "encryption_part": auth.encryptionPart || "",
+                "encryption_session": auth.encryptionSession || "",
+                "reference": share.reference || "",
+                "keychain_id": share.keychainId || "",
+            };
+            await this._client.put(`${this._baseURL}/shares`, requestBody, { headers: this.getAuthHeaders(auth, requestId) });
         } catch (error) {
-            console.error(`unexpected error: ${error}`);
-            throw error;
+            if (axios.isAxiosError(error) && error.response && error.response.data.code.includes("EC_MISSING")) {
+                throw new EncryptionPartMissingError("Encryption part missing");
+            }
+            throw new Error(this.throwableAxiosError(error));
         }
     }
 
@@ -128,40 +138,18 @@ export class ShieldSDK {
             if (reference && reference !== null && reference !== undefined) {
                 url = `${url}/${reference}`;
             }
-
-            const response = await fetch(url, {
-                method: 'DELETE',
-                headers: new Headers(this.getAuthHeaders(auth, requestId)),
-            });
-
-            if (!response.ok) {
-                const errorResponse = await response.text();
-                console.error(`unexpected response: ${response.status}: ${errorResponse}`);
-                throw new Error(`unexpected response: ${response.status}: ${errorResponse}`);
-            }
+            const response = await this._client.delete(url, { headers: this.getAuthHeaders(auth, requestId) })
         } catch (error) {
-            console.error(`unexpected error: ${error}`);
-            throw error;
+            throw new Error(this.throwableAxiosError(error));
         }
     }
 
     private async getEncryptionMethodBulk(url: string, bodyListname: string, auth: ShieldAuthOptions, keys: string[], requestId?: string): Promise<Map<string, string>> {
+        // both methods (references and users) expect a similar input JSON
+        // reference/bulk expects "references": string[] and user/bulk expects "user_ids": string[]
         try {
-            // both methods (references and users) expect a similar input JSON
-            // reference/bulk expects "references": string[] and user/bulk expects "user_ids": string[]
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: new Headers(this.getAuthHeaders(auth, requestId)),
-                body: JSON.stringify({ [bodyListname]: keys })
-            });
-
-            if (!response.ok) {
-                const errorResponse = await response.text();
-                console.error(`unexpected response: ${response.status}: ${errorResponse}`);
-                throw new Error(`unexpected response: ${response.status}: ${errorResponse}`);
-            }
-
-            const data = await response.json();
+            const response = await this._client.post(url, { [bodyListname]: keys }, { headers: this.getAuthHeaders(auth, requestId) });
+            const data = response.data;
 
             const returnValue: Map<string, string> = new Map();
 
@@ -176,8 +164,7 @@ export class ShieldSDK {
 
             return returnValue;
         } catch (error) {
-            console.error(`unexpected error: ${error}`);
-            throw error;
+            throw new Error(this.throwableAxiosError(error));
         }
     }
 
@@ -191,37 +178,29 @@ export class ShieldSDK {
 
     private async createSecret(path: string, share: Share, auth: ShieldAuthOptions, requestId?: string) {
         try {
-            const response = await fetch(`${this._baseURL}/${path}`, {
-                method: 'POST',
-                headers: new Headers(this.getAuthHeaders(auth, requestId)),
-                body: JSON.stringify({
-                    "secret": share.secret,
-                    "entropy": share.entropy,
-                    "salt": share.encryptionParameters?.salt,
-                    "iterations": share.encryptionParameters?.iterations,
-                    "length": share.encryptionParameters?.length,
-                    "digest": share.encryptionParameters?.digest,
-                    "encryption_part": auth.encryptionPart || "",
-                    "encryption_session": auth.encryptionSession || "",
-                    "reference": share.reference || "",
-                    "keychain_id": share.keychainId || "",
-                }),
-            });
-
-            if (!response.ok) {
-                const errorResponse = await response.text();
-                if (errorResponse.includes("EC_MISSING")) {
-                    throw new EncryptionPartMissingError("Encryption part missing");
+            const requestBody = {
+                "secret": share.secret,
+                "entropy": share.entropy,
+                "salt": share.encryptionParameters?.salt,
+                "iterations": share.encryptionParameters?.iterations,
+                "length": share.encryptionParameters?.length,
+                "digest": share.encryptionParameters?.digest,
+                "encryption_part": auth.encryptionPart || "",
+                "encryption_session": auth.encryptionSession || "",
+                "reference": share.reference || "",
+                "keychain_id": share.keychainId || "",
+            };
+            const response = await this._client.post(`${this._baseURL}/${path}`, requestBody, { headers: this.getAuthHeaders(auth, requestId) });
+        } catch (error) {
+            if (axios.isAxiosError(error) && error.response) {
+                if (error.response.data.code.includes("EC_MISSING")) {
+                    throw new EncryptionPartMissingError("Encryption part missing")
                 }
-                if (response.status === 409) {
+                if (error.response.status === axios.HttpStatusCode.Conflict) {
                     throw new SecretAlreadyExistsError("Secret already exists for the given auth options");
                 }
-                console.error(`unexpected response: ${response.status}: ${errorResponse}`);
-                throw new Error(`unexpected response: ${response.status}: ${errorResponse}`);
             }
-        } catch (error) {
-            console.error(`unexpected error: ${error}`);
-            throw error;
+            throw new Error(this.throwableAxiosError(error));
         }
     }
 
@@ -243,8 +222,8 @@ export class ShieldSDK {
         return 'customToken' in options;
     }
 
-    private getAuthHeaders(options: ShieldAuthOptions, requestId?: string): HeadersInit {
-        const headers: HeadersInit = {
+    private getAuthHeaders(options: ShieldAuthOptions, requestId?: string): Record<string, string> {
+        const headers: Record<string, string> = {
             "x-api-key": this._apiKey,
             "x-auth-provider": options.authProvider,
             "Access-Control-Allow-Origin": this._baseURL,
