@@ -101,7 +101,7 @@ export class ShieldSDK {
                     throw new NoSecretFoundError("No secret found for the given auth options");
                 }
                 const errorContent = error.response.data;
-                if (errorContent.includes("EC_MISSING")) {
+                if (errorContent.code.includes("EC_MISSING")) {
                     throw new EncryptionPartMissingError("Encryption part missing");
                 }
             }
@@ -125,7 +125,7 @@ export class ShieldSDK {
             };
             await this._client.put(`${this._baseURL}/shares`, requestBody, { headers: this.getAuthHeaders(auth, requestId) });
         } catch (error) {
-            if (axios.isAxiosError(error) && error.response && error.response.data.includes("EC_MISSING")) {
+            if (axios.isAxiosError(error) && error.response && error.response.data.code.includes("EC_MISSING")) {
                 throw new EncryptionPartMissingError("Encryption part missing");
             }
             throw new Error(this.throwableAxiosError(error));
@@ -193,7 +193,7 @@ export class ShieldSDK {
             const response = await this._client.post(`${this._baseURL}/${path}`, requestBody, { headers: this.getAuthHeaders(auth, requestId) });
         } catch (error) {
             if (axios.isAxiosError(error) && error.response) {
-                if (error.response.data.includes("EC_MISSING")) {
+                if (error.response.data.code.includes("EC_MISSING")) {
                     throw new EncryptionPartMissingError("Encryption part missing")
                 }
                 if (error.response.status === axios.HttpStatusCode.Conflict) {
