@@ -158,7 +158,7 @@ export class ShieldSDK {
                 // Shield returns either found or not found regardless of input references/users to avoid falling
                 // in "snitchy" 403 situations, we'll only care about found occurences here though
                 if (info['status'] === 'found') {
-                    returnValue.set(key, info as Map<string, string>);
+                    returnValue.set(key, new Map<string, string>(Object.entries(info)));
                 }
             }
 
@@ -168,12 +168,31 @@ export class ShieldSDK {
         }
     }
 
-    public async getEncryptionMethodsBySignerReferences(auth: ShieldAuthOptions, signers: string[], requestId?: string): Promise<Map<string, Map<string, string>>> {
+    public async getEncryptionMethodsBySignerReferencesDetailed(auth: ShieldAuthOptions, signers: string[], requestId?: string): Promise<Map<string, Map<string, string>>> {
         return this.getEncryptionMethodBulk(`${this._baseURL}/shares/encryption/reference/bulk`, 'references', auth, signers, requestId);
     }
 
-    public async getEncryptionMethodsByOwnerId(auth: ShieldAuthOptions, users: string[], requestId?: string): Promise<Map<string, Map<string, string>>> {
+    public async getEncryptionMethodsByOwnerIdDetailed(auth: ShieldAuthOptions, users: string[], requestId?: string): Promise<Map<string, Map<string, string>>> {
         return this.getEncryptionMethodBulk(`${this._baseURL}/shares/encryption/user/bulk`, 'user_ids', auth, users, requestId);
+    }
+
+    private simplifyEncryptionMethodMap(enrichedMap: Map<string, Map<string, string>>): Map<string, string> {
+        return new Map(
+            Array.from(enrichedMap.entries())
+            .map(
+                ([key, enrichedValue]) => [key, enrichedValue.get('encryption_type')]
+            )
+        );
+    }
+
+    public async getEncryptionMethodsBySignerReferences(auth: ShieldAuthOptions, signers: string[], requestId?: string): Promise<Map<string, string>> {
+        const detailedMap = await this.getEncryptionMethodBulk(`${this._baseURL}/shares/encryption/reference/bulk`, 'references', auth, signers, requestId);
+        return this.simplifyEncryptionMethodMap(detailedMap);
+    }
+
+    public async getEncryptionMethodsByOwnerId(auth: ShieldAuthOptions, users: string[], requestId?: string): Promise<Map<string, string>> {
+        const detailedMap = await this.getEncryptionMethodBulk(`${this._baseURL}/shares/encryption/user/bulk`, 'user_ids', auth, users, requestId);
+        return this.simplifyEncryptionMethodMap(detailedMap);
     }
 
     private async createSecret(path: string, share: Share, auth: ShieldAuthOptions, requestId?: string) {
