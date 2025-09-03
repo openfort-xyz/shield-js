@@ -144,21 +144,21 @@ export class ShieldSDK {
         }
     }
 
-    private async getEncryptionMethodBulk(url: string, bodyListname: string, auth: ShieldAuthOptions, keys: string[], requestId?: string): Promise<Map<string, string>> {
+    private async getEncryptionMethodBulk(url: string, bodyListname: string, auth: ShieldAuthOptions, keys: string[], requestId?: string): Promise<Map<string, Map<string, string>>> {
         // both methods (references and users) expect a similar input JSON
         // reference/bulk expects "references": string[] and user/bulk expects "user_ids": string[]
         try {
             const response = await this._client.post(url, { [bodyListname]: keys }, { headers: this.getAuthHeaders(auth, requestId) });
             const data = response.data;
 
-            const returnValue: Map<string, string> = new Map();
+            const returnValue: Map<string, Map<string, string>> = new Map();
 
             for (const key in data.encryption_types) {
                 const info = data.encryption_types[key]
                 // Shield returns either found or not found regardless of input references/users to avoid falling
                 // in "snitchy" 403 situations, we'll only care about found occurences here though
                 if (info['status'] === 'found') {
-                    returnValue.set(key, info['encryption_type']);
+                    returnValue.set(key, info as Map<string, string>);
                 }
             }
 
@@ -168,16 +168,21 @@ export class ShieldSDK {
         }
     }
 
-    public async getEncryptionMethodsBySignerReferences(auth: ShieldAuthOptions, signers: string[], requestId?: string): Promise<Map<string, string>> {
+    public async getEncryptionMethodsBySignerReferences(auth: ShieldAuthOptions, signers: string[], requestId?: string): Promise<Map<string, Map<string, string>>> {
         return this.getEncryptionMethodBulk(`${this._baseURL}/shares/encryption/reference/bulk`, 'references', auth, signers, requestId);
     }
 
-    public async getEncryptionMethodsByOwnerId(auth: ShieldAuthOptions, users: string[], requestId?: string): Promise<Map<string, string>> {
+    public async getEncryptionMethodsByOwnerId(auth: ShieldAuthOptions, users: string[], requestId?: string): Promise<Map<string, Map<string, string>>> {
         return this.getEncryptionMethodBulk(`${this._baseURL}/shares/encryption/user/bulk`, 'user_ids', auth, users, requestId);
     }
 
     private async createSecret(path: string, share: Share, auth: ShieldAuthOptions, requestId?: string) {
         try {
+            const passkeyReferenceBody = share.passkeyReference ? {
+                "passkey_id": share.passkeyReference.passkeyId,
+                "passkey_env": share.passkeyReference.passkeyEnv,
+            } : null;
+
             const requestBody = {
                 "secret": share.secret,
                 "entropy": share.entropy,
@@ -189,8 +194,9 @@ export class ShieldSDK {
                 "encryption_session": auth.encryptionSession || "",
                 "reference": share.reference || "",
                 "keychain_id": share.keychainId || "",
+                "passkey_reference": passkeyReferenceBody,
             };
-            const response = await this._client.post(`${this._baseURL}/${path}`, requestBody, { headers: this.getAuthHeaders(auth, requestId) });
+            await this._client.post(`${this._baseURL}/${path}`, requestBody, { headers: this.getAuthHeaders(auth, requestId) });
         } catch (error) {
             if (axios.isAxiosError(error) && error.response) {
                 if (error.response.data.code.includes("EC_MISSING")) {
@@ -209,6 +215,7 @@ export class ShieldSDK {
     }
 
     public async storeSecret(share: Share, auth: ShieldAuthOptions, requestId?: string): Promise<void> {
+        console.log(`Storing share ${JSON.stringify(share)}`);
         await this.createSecret("shares", share, auth, requestId);
     }
 
