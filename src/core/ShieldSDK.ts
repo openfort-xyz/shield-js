@@ -234,7 +234,6 @@ export class ShieldSDK {
     }
 
     public async storeSecret(share: Share, auth: ShieldAuthOptions, requestId?: string): Promise<void> {
-        console.log(`Storing share ${JSON.stringify(share)}`);
         await this.createSecret("shares", share, auth, requestId);
     }
 
