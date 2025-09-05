@@ -2,6 +2,7 @@ import { ShieldOptions } from "../models/ShieldOptions";
 import { ShieldAuthOptions } from "../models/ShieldAuthOptions";
 import { OpenfortAuthOptions } from "../models/OpenfortAuthOptions";
 import { CustomAuthOptions } from "../models/CustomAuthOptions";
+import { RecoveryMethod, RecoveryMethodDetails, PasskeyEnv } from "../models/RecoveryMethod";
 import { NoSecretFoundError } from "../errors/NoSecretFoundError";
 import { SecretAlreadyExistsError } from "../errors/SecretAlreadyExistsError";
 import { Share } from "../models/Share";
@@ -144,21 +145,44 @@ export class ShieldSDK {
         }
     }
 
-    private async getEncryptionMethodBulk(url: string, bodyListname: string, auth: ShieldAuthOptions, keys: string[], requestId?: string): Promise<Map<string, Map<string, any>>> {
+    private getEnvOption(opt?: string): string | undefined {
+        return opt?.toLowerCase() !== "unknown" ? opt : undefined;
+    }
+
+    private getPasskeyEnv(info?: Record<string, any>): PasskeyEnv | undefined {
+        return info && {
+            name: this.getEnvOption(info.name),
+            os: this.getEnvOption(info.os),
+            osVersion: this.getEnvOption(info.osVersion),
+            device: this.getEnvOption(info.device),
+        };
+    }
+
+    private getDetails(info?: Record<string, any>): RecoveryMethodDetails | undefined {
+        const passkeyId = info?.passkey_id;
+        return passkeyId
+            ? { passkeyId, passkeyEnv: this.getPasskeyEnv(info.passkey_env) }
+            : undefined;
+    }
+
+    private async getEncryptionMethodBulk(url: string, bodyListname: string, auth: ShieldAuthOptions, keys: string[], requestId?: string): Promise<Map<string, RecoveryMethod>> {
         // both methods (references and users) expect a similar input JSON
         // reference/bulk expects "references": string[] and user/bulk expects "user_ids": string[]
         try {
             const response = await this._client.post(url, { [bodyListname]: keys }, { headers: this.getAuthHeaders(auth, requestId) });
             const data = response.data;
 
-            const returnValue: Map<string, Map<string, any>> = new Map();
+            const returnValue: Map<string, RecoveryMethod> = new Map();
 
             for (const key in data.encryption_types) {
                 const info = data.encryption_types[key]
                 // Shield returns either found or not found regardless of input references/users to avoid falling
                 // in "snitchy" 403 situations, we'll only care about found occurences here though
                 if (info['status'] === 'found') {
-                    returnValue.set(key, new Map<string, any>(Object.entries(info)));
+                    returnValue.set(key, {
+                        method: info['encryption_type'],
+                        details: this.getDetails(info),
+                    });
                 }
             }
 
@@ -168,19 +192,19 @@ export class ShieldSDK {
         }
     }
 
-    public async getEncryptionMethodsBySignerReferencesDetailed(auth: ShieldAuthOptions, signers: string[], requestId?: string): Promise<Map<string, Map<string, any>>> {
+    public async getEncryptionMethodsBySignerReferencesDetailed(auth: ShieldAuthOptions, signers: string[], requestId?: string): Promise<Map<string, RecoveryMethod>> {
         return this.getEncryptionMethodBulk(`${this._baseURL}/shares/encryption/reference/bulk`, 'references', auth, signers, requestId);
     }
 
-    public async getEncryptionMethodsByOwnerIdDetailed(auth: ShieldAuthOptions, users: string[], requestId?: string): Promise<Map<string, Map<string, any>>> {
+    public async getEncryptionMethodsByOwnerIdDetailed(auth: ShieldAuthOptions, users: string[], requestId?: string): Promise<Map<string, RecoveryMethod>> {
         return this.getEncryptionMethodBulk(`${this._baseURL}/shares/encryption/user/bulk`, 'user_ids', auth, users, requestId);
     }
 
-    private simplifyEncryptionMethodMap(enrichedMap: Map<string, Map<string, any>>): Map<string, string> {
+    private simplifyEncryptionMethodMap(enrichedMap: Map<string, RecoveryMethod>): Map<string, string> {
         return new Map(
             Array.from(enrichedMap.entries())
             .map(
-                ([key, enrichedValue]) => [key, enrichedValue.get('encryption_type') as string]
+                ([key, enrichedValue]) => [key, enrichedValue.method as string]
             )
         );
     }
