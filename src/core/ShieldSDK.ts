@@ -128,7 +128,7 @@ export class ShieldSDK {
                 "encryption_session": auth.encryptionSession || "",
                 "reference": share.reference || "",
                 "keychain_id": share.keychainId || "",
-                "passkey_reference": passkeyReferenceBody || "",
+                "passkey_reference": passkeyReferenceBody,
             };
             await this._client.put(`${this._baseURL}/shares`, requestBody, { headers: this.getAuthHeaders(auth, requestId) });
         } catch (error) {
