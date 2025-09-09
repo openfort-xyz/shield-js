@@ -112,6 +112,11 @@ export class ShieldSDK {
 
     public async updateSecret(auth: ShieldAuthOptions, share: Share, requestId?: string): Promise<void> {
         try {
+            const passkeyReferenceBody = share.passkeyReference ? {
+                "passkey_id": share.passkeyReference.passkeyId,
+                "passkey_env": share.passkeyReference.passkeyEnv,
+            } : null;
+
             const requestBody = {
                 "secret": share.secret,
                 "entropy": share.entropy,
@@ -123,6 +128,7 @@ export class ShieldSDK {
                 "encryption_session": auth.encryptionSession || "",
                 "reference": share.reference || "",
                 "keychain_id": share.keychainId || "",
+                "passkey_reference": passkeyReferenceBody || "",
             };
             await this._client.put(`${this._baseURL}/shares`, requestBody, { headers: this.getAuthHeaders(auth, requestId) });
         } catch (error) {

@@ -1,2 +1,2 @@
-export const VERSION = "0.1.24";
+export const VERSION = "0.1.25";
 export const PACKAGE = "@openfort/shield-js";
