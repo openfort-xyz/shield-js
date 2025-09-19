@@ -80,6 +80,36 @@ export class ShieldSDK {
         }
     }
 
+    public async getSecretByReference(auth: ShieldAuthOptions, reference: string, requestId?: string): Promise<Share> {
+        try {
+            const response = await this._client.get(`${this._baseURL}/shares/${reference}`, { headers: this.getAuthHeaders(auth, requestId) });
+            const data = await response.data;
+            return {
+                secret: data.secret,
+                entropy: data.entropy,
+                encryptionParameters: {
+                    salt: data.salt,
+                    iterations: data.iterations,
+                    length: data.length,
+                    digest: data.digest,
+                },
+                keychainId: data.keychain_id,
+                reference: data.reference,
+            };
+        } catch (error) {
+            if (axios.isAxiosError(error) && error.response) {
+                if (error.response.status === axios.HttpStatusCode.NotFound) {
+                    throw new NoSecretFoundError("No secret found for the given auth options");
+                }
+                const errorContent = error.response.data;
+                if (errorContent.code.includes("EC_MISSING")) {
+                    throw new EncryptionPartMissingError("Encryption part missing");
+                }
+            }
+            throw new Error(this.throwableAxiosError(error));
+        }
+    }
+
     public async getSecret(auth: ShieldAuthOptions, requestId?: string): Promise<Share> {
         try {
             const response = await this._client.get(`${this._baseURL}/shares`, { headers: this.getAuthHeaders(auth, requestId) });
