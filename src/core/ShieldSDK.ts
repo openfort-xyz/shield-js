@@ -9,6 +9,7 @@ import { Share } from "../models/Share";
 import { EncryptionPartMissingError } from "../errors/EncryptionPartMissingError";
 import axios, { AxiosInstance, AxiosResponse } from "axios";
 import axiosRetry from "axios-retry";
+import { OTPRequiredError } from "../errors/OTPError";
 
 export class ShieldSDK {
 
@@ -105,6 +106,10 @@ export class ShieldSDK {
                 if (errorContent.code.includes("EC_MISSING")) {
                     throw new EncryptionPartMissingError("Encryption part missing");
                 }
+
+                if (errorContent.code.includes("OTP_MISSING")) {
+                    throw new OTPRequiredError("Encrypted session should be created with OTP");
+                }
             }
             throw new Error(this.throwableAxiosError(error));
         }
@@ -134,6 +139,10 @@ export class ShieldSDK {
                 const errorContent = error.response.data;
                 if (errorContent.code.includes("EC_MISSING")) {
                     throw new EncryptionPartMissingError("Encryption part missing");
+                }
+
+                if (errorContent.code.includes("OTP_MISSING")) {
+                    throw new OTPRequiredError("Encrypted session should be created with OTP");
                 }
             }
             throw new Error(this.throwableAxiosError(error));
