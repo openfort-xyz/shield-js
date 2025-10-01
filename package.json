@@ -15,7 +15,6 @@
   },
   "scripts": {
     "build": "tsc",
-    "test": "jest --config jestconfig.json",
     "prepublishOnly": "pnpm install && pnpm build",
     "changeset": "changeset",
     "changeset:version": "pnpm install --lockfile-only && changeset version",
