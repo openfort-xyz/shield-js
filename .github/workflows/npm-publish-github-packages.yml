@@ -1,43 +1,75 @@
 # This workflow will run tests using node and then publish a package to GitHub Packages when a release is created
 # For more information see: https://docs.github.com/en/actions/publishing-packages/publishing-nodejs-packages
 
-name: Node.js Package
+name: Release
 
 on:
-  release:
-    types: [created]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 10.16.1
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 22
-          cache: 'pnpm'
-      - run: pnpm install --frozen-lockfile
-
-  publish-gpr:
-    needs: build
-    runs-on: ubuntu-latest
+  verify:
+    name: Verify
+    uses: ./.github/workflows/verify.yml
     permissions:
       contents: read
-      packages: write
+
+  build-and-test:
+    name: Build and Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
     steps:
-      - uses: actions/checkout@v3
-      - uses: pnpm/action-setup@v4
+      - name: Clone repository
+        uses: actions/checkout@v4
         with:
-          version: 10.16.1
-      - uses: actions/setup-node@v3
+          submodules: "recursive"
+
+      - name: Install dependencies
+        uses: ./.github/actions/install-dependencies
+
+      - name: Lint code
+        run: pnpm lint
+
+      - name: Format check
+        run: pnpm format --check
+        continue-on-error: true
+
+      - name: Build
+        run: pnpm build
+
+      - name: Test
+        run: pnpm test
+
+  release:
+    name: Release
+    needs: [verify, build-and-test]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+      id-token: write
+      pull-requests: write
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v4
         with:
-          node-version: 22
-          registry-url: "https://registry.npmjs.org"
-          cache: 'pnpm'
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm publish --access public
+          submodules: "recursive"
+
+      - name: Install dependencies
+        uses: ./.github/actions/install-dependencies
+
+      - name: Publish to NPM
+        uses: changesets/action@v1
+        with:
+          createGithubReleases: ${{ github.ref == 'refs/heads/main' }}
+          publish: pnpm changeset:publish
+          version: pnpm changeset:version
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
