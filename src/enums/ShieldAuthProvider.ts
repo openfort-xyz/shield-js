@@ -1,4 +1,4 @@
 export enum ShieldAuthProvider {
-    OPENFORT = "openfort",
-    CUSTOM = "custom"
+  OPENFORT = 'openfort',
+  CUSTOM = 'custom',
 }

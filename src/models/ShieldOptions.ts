@@ -1,4 +1,4 @@
 export interface ShieldOptions {
-    baseURL?: string;
-    apiKey: string;
+  baseURL?: string
+  apiKey: string
 }

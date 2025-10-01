@@ -15,19 +15,22 @@
   },
   "scripts": {
     "build": "tsc",
-    "format": "prettier --write \"src/**/*.ts\"",
-    "lint": "eslint ./src",
     "test": "jest --config jestconfig.json",
     "prepublishOnly": "pnpm install && pnpm build",
     "changeset": "changeset",
     "changeset:version": "pnpm install --lockfile-only && changeset version",
     "changeset:publish": "pnpm build && changeset publish",
-    "changeset:prepublish": "pnpm build"
+    "changeset:prepublish": "pnpm build",
+    "check": "biome check --write --unsafe",
+    "check:types": "tsc --noEmit",
+    "format": "biome format --write",
+    "lint": "biome lint"
   },
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.2.4",
     "@changesets/changelog-github": "^0.4.8",
     "@changesets/cli": "^2.29.7",
     "typescript": "^5.4.3"

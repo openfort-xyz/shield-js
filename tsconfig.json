@@ -20,10 +20,7 @@
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "sourceMap": true,
-    "strictBindCallApply": true,
+    "strictBindCallApply": true
   },
-  "exclude": [
-    "dist",
-    "example"
-  ]
+  "exclude": ["dist", "example"]
 }
