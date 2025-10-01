@@ -6,7 +6,7 @@
 !/.npmignore
 !/.npmrc
 !package.json
-!package-lock.json
+!pnpm-workspace.yaml
 !tsconfig.json
 !README.md
 

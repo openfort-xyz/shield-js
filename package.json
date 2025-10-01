@@ -1,6 +1,6 @@
 {
   "name": "@openfort/shield-js",
-  "version": "0.1.27",
+  "version": "0.1.28",
   "description": "",
   "author": "Openfort",
   "repository": {
@@ -19,7 +19,7 @@
     "format": "prettier --write \"src/**/*.ts\"",
     "lint": "eslint ./src",
     "test": "jest --config jestconfig.json",
-    "prepublishOnly": "yarn install && yarn build"
+    "prepublishOnly": "pnpm install && pnpm build"
   },
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"
@@ -28,7 +28,8 @@
     "typescript": "^5.4.3"
   },
   "dependencies": {
-    "axios": "1.11.0",
+    "axios": "1.12.2",
     "axios-retry": "4.5.0"
-  }
+  },
+  "packageManager": "pnpm@10.16.1"
 }
