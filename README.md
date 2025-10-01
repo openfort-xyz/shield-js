@@ -9,9 +9,9 @@ ShieldJS is a TypeScript library for interacting with the Openfort Shield API. I
 
 ## Installation
 
-To use ShieldSDK in your project, install it via npm:
+To use ShieldSDK in your project, install it via pnpm:
 ```bash
-npm install @openfort/shield-js
+pnpm add @openfort/shield-js
 ```
 
 ## Usage
