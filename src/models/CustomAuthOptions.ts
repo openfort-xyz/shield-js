@@ -1,8 +1,7 @@
-import {ShieldAuthOptions} from "./ShieldAuthOptions";
-import {ShieldAuthProvider} from "../enums/ShieldAuthProvider";
+import type { ShieldAuthProvider } from '../enums/ShieldAuthProvider'
+import type { ShieldAuthOptions } from './ShieldAuthOptions'
 
 export interface CustomAuthOptions extends ShieldAuthOptions {
-    authProvider: ShieldAuthProvider.CUSTOM;
-    customToken: string;
+  authProvider: ShieldAuthProvider.CUSTOM
+  customToken: string
 }
-

@@ -11,7 +11,7 @@
 !.changeset/
 !.changeset/**/*
 !README.md
-
+!biome.json
 # And these directories...
 !src/
 !src/**/*
