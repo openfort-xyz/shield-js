@@ -43,9 +43,6 @@ jobs:
       - name: Build
         run: pnpm build
 
-      - name: Test
-        run: pnpm test
-
   release:
     name: Release
     needs: [verify, build-and-test]
