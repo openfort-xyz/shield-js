@@ -1,6 +1,6 @@
 {
   "name": "@openfort/shield-js",
-  "version": "0.1.28",
+  "version": "0.1.27",
   "description": "",
   "author": "Openfort",
   "repository": {
@@ -14,14 +14,13 @@
     ".": "./dist/index.js"
   },
   "scripts": {
-    "prebuild": "node -p \"'export const VERSION = ' + JSON.stringify(require('./package.json').version) + ';\\nexport const PACKAGE = ' + JSON.stringify(require('./package.json').name) + ';'\" > src/version.ts",
     "build": "tsc",
     "format": "prettier --write \"src/**/*.ts\"",
     "lint": "eslint ./src",
     "test": "jest --config jestconfig.json",
     "prepublishOnly": "pnpm install && pnpm build",
     "changeset": "changeset",
-    "changeset:version": "pnpm install --lockfile-only && changeset version && pnpm prebuild",
+    "changeset:version": "pnpm install --lockfile-only && changeset version",
     "changeset:publish": "pnpm build && changeset publish",
     "changeset:prepublish": "pnpm build"
   },
