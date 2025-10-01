@@ -8,6 +8,8 @@
 !package.json
 !pnpm-workspace.yaml
 !tsconfig.json
+!.changeset/
+!.changeset/**/*
 !README.md
 
 # And these directories...
