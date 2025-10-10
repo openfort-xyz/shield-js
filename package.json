@@ -21,8 +21,6 @@
     "changeset:publish": "pnpm build && changeset publish",
     "changeset:prepublish": "pnpm build",
     "check": "biome check --write --unsafe",
-    "check:types": "tsc --noEmit",
-    "format": "biome format --write",
     "lint": "biome lint"
   },
   "publishConfig": {
