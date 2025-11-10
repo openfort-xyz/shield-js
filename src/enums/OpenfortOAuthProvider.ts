@@ -6,4 +6,5 @@ export enum OpenfortOAuthProvider {
   PLAYFAB = 'playfab',
   CUSTOM = 'custom',
   OIDC = 'oidc',
+  BETTER_AUTH = 'better-auth',
 }
