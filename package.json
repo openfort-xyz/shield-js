@@ -36,5 +36,5 @@
     "axios": "1.12.2",
     "axios-retry": "4.5.0"
   },
-  "packageManager": "pnpm@10.16.1"
+  "packageManager": "pnpm@10.19.0"
 }
