@@ -45,5 +45,5 @@ jobs:
           title: "chore: version package"  # Default is `Version Packages`
         env:
           NPM_CONFIG_PROVENANCE: true # this works only with npmjs and public repos, not ghcr
-          # GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}    # we need this for PRs
           # NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
