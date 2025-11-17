@@ -16,7 +16,7 @@ jobs:
     permissions:
       contents: write       # To push commits and tags
       pull-requests: write  # To create and update PRs
-      id-token: write       # For OIDC
+      id-token: write       # For OIDC and provenance
       # packages: write       # To publish package to GHCR
 
     steps:
@@ -46,4 +46,5 @@ jobs:
         env:
           NPM_CONFIG_PROVENANCE: true # this works only with npmjs and public repos, not ghcr
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}    # we need this for PRs
+          NPM_TOKEN: '' # bug in changesets/action - https://github.com/changesets/changesets/issues/1152#issuecomment-3190884868
           # NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
