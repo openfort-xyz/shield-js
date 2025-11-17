@@ -13,7 +13,7 @@ jobs:
     timeout-minutes: 5
     permissions:
       contents: read
-      packages: read    # required for pulling packages from GHCR
+      # packages: read    # required for pulling packages from GHCR
 
     steps:
       - name: Checkout repository
