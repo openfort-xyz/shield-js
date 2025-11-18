@@ -29,13 +29,9 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: 22
+          node-version: 24
           cache: pnpm
           registry-url: https://registry.npmjs.org
-
-      # Ensure npm 11.5.1 or later is installed
-      - name: Update npm
-        run: npm install -g npm@latest
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -52,4 +48,3 @@ jobs:
           NPM_CONFIG_PROVENANCE: true # this works only with npmjs and public repos, not ghcr
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}    # we need this for PRs
           NPM_TOKEN: '' # bug in changesets/action - https://github.com/changesets/changesets/issues/1152#issuecomment-3190884868
-          # NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
