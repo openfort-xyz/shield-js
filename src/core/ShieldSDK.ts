@@ -274,13 +274,14 @@ export class ShieldSDK {
     auth: ShieldAuthOptions,
     keys: string[],
     requestId?: string,
+    reference?: string,
   ): Promise<Map<string, RecoveryMethod>> {
     // both methods (references and users) expect a similar input JSON
     // reference/bulk expects "references": string[] and user/bulk expects "user_ids": string[]
     try {
       const response = await this._client.post(
         url,
-        { [bodyListname]: keys },
+        { [bodyListname]: keys, reference: reference },
         { headers: this.getAuthHeaders(auth, requestId) },
       )
       const data = response.data
@@ -323,6 +324,7 @@ export class ShieldSDK {
     auth: ShieldAuthOptions,
     users: string[],
     requestId?: string,
+    reference?: string,
   ): Promise<Map<string, RecoveryMethod>> {
     return this.getEncryptionMethodBulk(
       `${this._baseURL}/shares/encryption/user/bulk`,
@@ -330,6 +332,7 @@ export class ShieldSDK {
       auth,
       users,
       requestId,
+      reference,
     )
   }
 
