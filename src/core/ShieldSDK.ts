@@ -450,6 +450,21 @@ export class ShieldSDK {
     return 'customToken' in options
   }
 
+  public async enable2FA(
+    auth: ShieldAuthOptions,
+    requestId?: string,
+  ): Promise<void> {
+    try {
+      await this._client.post(
+        `${this._baseURL}/project/enable-2fa`,
+        {},
+        { headers: this.getAuthHeaders(auth, requestId) },
+      )
+    } catch (error) {
+      throw new Error(this.throwableAxiosError(error))
+    }
+  }
+
   private getAuthHeaders(
     options: ShieldAuthOptions,
     requestId?: string,
