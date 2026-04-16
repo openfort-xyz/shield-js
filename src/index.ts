@@ -21,4 +21,7 @@ export {
   Share,
 } from './models/Share'
 export { ShieldAuthOptions } from './models/ShieldAuthOptions'
-export { ShieldOptions } from './models/ShieldOptions'
+export {
+  DefaultHeadersProvider,
+  ShieldOptions,
+} from './models/ShieldOptions'
