@@ -13,7 +13,10 @@ import type {
 } from '../models/RecoveryMethod'
 import type { Share } from '../models/Share'
 import type { ShieldAuthOptions } from '../models/ShieldAuthOptions'
-import type { ShieldOptions } from '../models/ShieldOptions'
+import type {
+  DefaultHeadersProvider,
+  ShieldOptions,
+} from '../models/ShieldOptions'
 
 export class ShieldSDK {
   private readonly _requestRetries = 3
@@ -22,16 +25,26 @@ export class ShieldSDK {
   private readonly _baseURL: string
   private readonly _apiKey: string
   private readonly _requestIdHeader = 'x-request-id'
+  private readonly _defaultHeaders?: DefaultHeadersProvider
 
   private _client: AxiosInstance
 
   constructor({
     baseURL = 'https://shield.openfort.io',
     apiKey,
+    defaultHeaders,
   }: ShieldOptions) {
     this._apiKey = apiKey
     this._baseURL = baseURL
+    this._defaultHeaders = defaultHeaders
     this.initAxiosClient()
+  }
+
+  private resolveDefaultHeaders(): Record<string, string> {
+    if (!this._defaultHeaders) return {}
+    return typeof this._defaultHeaders === 'function'
+      ? this._defaultHeaders()
+      : this._defaultHeaders
   }
 
   private initAxiosClient() {
@@ -469,7 +482,10 @@ export class ShieldSDK {
     options: ShieldAuthOptions,
     requestId?: string,
   ): Record<string, string> {
+    // Caller-provided headers go in first so SDK-owned headers below always
+    // win on a key collision (e.g. a caller can't override `x-api-key`).
     const headers: Record<string, string> = {
+      ...this.resolveDefaultHeaders(),
       'x-api-key': this._apiKey,
       'x-auth-provider': options.authProvider,
       'Access-Control-Allow-Origin': this._baseURL,

@@ -40,7 +40,8 @@
   },
   "pnpm": {
     "overrides": {
-      "picomatch": ">=2.3.2"
+      "picomatch": ">=2.3.2",
+      "follow-redirects": ">=1.16.0"
     }
   },
   "packageManager": "pnpm@10.19.0"
