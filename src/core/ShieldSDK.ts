@@ -6,6 +6,7 @@ import { OTPRequiredError } from '../errors/OTPError'
 import { SecretAlreadyExistsError } from '../errors/SecretAlreadyExistsError'
 import type { CustomAuthOptions } from '../models/CustomAuthOptions'
 import type { OpenfortAuthOptions } from '../models/OpenfortAuthOptions'
+import type { Provider } from '../models/Provider'
 import type {
   PasskeyEnv,
   RecoveryMethod,
@@ -471,6 +472,42 @@ export class ShieldSDK {
       await this._client.post(
         `${this._baseURL}/project/enable-2fa`,
         {},
+        { headers: this.getAuthHeaders(auth, requestId) },
+      )
+    } catch (error) {
+      throw new Error(this.throwableAxiosError(error))
+    }
+  }
+
+  public async getProviders(
+    auth: ShieldAuthOptions,
+    requestId?: string,
+  ): Promise<Provider[]> {
+    try {
+      const response = await this._client.get(
+        `${this._baseURL}/project/providers`,
+        { headers: this.getAuthHeaders(auth, requestId) },
+      )
+      const providers = response.data?.providers ?? []
+      return providers.map((provider: any) => ({
+        providerId: provider.provider_id,
+        type: provider.type,
+      }))
+    } catch (error) {
+      throw new Error(this.throwableAxiosError(error))
+    }
+  }
+
+  public async updateProviderPublishableKey(
+    auth: ShieldAuthOptions,
+    providerId: string,
+    publishableKey: string,
+    requestId?: string,
+  ): Promise<void> {
+    try {
+      await this._client.put(
+        `${this._baseURL}/project/providers/${providerId}`,
+        { publishable_key: publishableKey },
         { headers: this.getAuthHeaders(auth, requestId) },
       )
     } catch (error) {
