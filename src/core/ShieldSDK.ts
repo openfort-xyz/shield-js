@@ -19,6 +19,11 @@ import type {
   ShieldOptions,
 } from '../models/ShieldOptions'
 
+/** Raw `GET /project/providers` payload, before mapping to the public `Provider` model. */
+interface ProjectProvidersResponse {
+  providers?: Array<{ provider_id: string; type: string }>
+}
+
 export class ShieldSDK {
   private readonly _requestRetries = 3
   private readonly _retryDelayFunc = (retryCount) => 500 * 2 ** retryCount
@@ -490,12 +495,12 @@ export class ShieldSDK {
     requestId?: string,
   ): Promise<Provider[]> {
     try {
-      const response = await this._client.get(
+      const response = await this._client.get<ProjectProvidersResponse>(
         `${this._baseURL}/project/providers`,
         { headers: this.getAuthHeaders(auth, requestId) },
       )
       const providers = response.data?.providers ?? []
-      return providers.map((provider: any) => ({
+      return providers.map((provider) => ({
         providerId: provider.provider_id,
         type: provider.type,
       }))
