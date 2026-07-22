@@ -9,6 +9,7 @@ export { OTPRequiredError } from './errors/OTPError'
 export { SecretAlreadyExistsError } from './errors/SecretAlreadyExistsError'
 export { CustomAuthOptions } from './models/CustomAuthOptions'
 export { OpenfortAuthOptions } from './models/OpenfortAuthOptions'
+export { Provider } from './models/Provider'
 export {
   PasskeyEnv,
   RecoveryMethod,
