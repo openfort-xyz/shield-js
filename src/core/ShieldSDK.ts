@@ -571,7 +571,11 @@ export class ShieldSDK {
     }
 
     if (this.isOpenfortAuthOptions(options)) {
-      headers.Authorization = `Bearer ${options.openfortOAuthToken}`
+      // Cookie sessions carry no token: the browser attaches the session cookie
+      // to the same-origin request and Shield validates that instead.
+      if (options.openfortOAuthToken) {
+        headers.Authorization = `Bearer ${options.openfortOAuthToken}`
+      }
       if (options.openfortOAuthProvider) {
         headers['x-openfort-provider'] = options.openfortOAuthProvider
       }
