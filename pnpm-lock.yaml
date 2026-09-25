@@ -8,7 +8,7 @@ overrides:
   picomatch: '>=2.3.2'
   follow-redirects: '>=1.16.0'
   form-data: '>=4.0.6'
-  js-yaml: '>=4.3.0'
+  js-yaml: '>=5.2.2'
 
 importers:
 
@@ -413,8 +413,8 @@ packages:
   isexe@2.0.0:
     resolution: {integrity: sha512-RHxMLp9lnKHGHRng9QFhRCMbYAcVpn69smSGcq3f36xjgVVWThj4qqLbTLlq7Ssj8B+fIQ1EuCEGI2lKsyQeIw==}
 
-  js-yaml@5.2.1:
-    resolution: {integrity: sha512-zfLtNfQqxVqq3uaTqSkh4x4hZw3KHobGUA0fJUj4wawW8bsQLTVqpHdXSIzidh7o+4lEW36tANuAGdaFx6Zgnw==}
+  js-yaml@5.4.2:
+    resolution: {integrity: sha512-m+aqu+LwO1O6sIopafj8HUVl5aawITwZQe/yHpMCKjaWBaA/d07B/QdMb3529REftiU+RMMHL3Vlsw3hON7vWg==}
     hasBin: true
 
   jsonfile@4.0.0:
@@ -771,7 +771,7 @@ snapshots:
   '@changesets/parse@0.4.2':
     dependencies:
       '@changesets/types': 6.1.0
-      js-yaml: 5.2.1
+      js-yaml: 5.4.2
 
   '@changesets/pre@2.0.2':
     dependencies:
@@ -1066,7 +1066,7 @@ snapshots:
 
   isexe@2.0.0: {}
 
-  js-yaml@5.2.1:
+  js-yaml@5.4.2:
     dependencies:
       argparse: 2.0.1
 
@@ -1148,7 +1148,7 @@ snapshots:
   read-yaml-file@1.1.0:
     dependencies:
       graceful-fs: 4.2.11
-      js-yaml: 5.2.1
+      js-yaml: 5.4.2
       pify: 4.0.1
       strip-bom: 3.0.0
 
