@@ -6,6 +6,10 @@ import type { ShieldAuthOptions } from './ShieldAuthOptions'
 export interface OpenfortAuthOptions extends ShieldAuthOptions {
   authProvider: ShieldAuthProvider.OPENFORT
   openfortOAuthProvider?: OpenfortOAuthProvider
-  openfortOAuthToken: string
+  /**
+   * The Openfort session or identity token. Omit it for cookie-session projects,
+   * where Shield is called same-origin and authenticates the session cookie.
+   */
+  openfortOAuthToken?: string
   openfortOAuthTokenType?: OpenfortOAuthTokenType
 }
