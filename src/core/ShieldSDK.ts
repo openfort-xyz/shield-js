@@ -54,7 +54,14 @@ export class ShieldSDK {
   }
 
   private initAxiosClient() {
-    this._client = axios.create({ baseURL: this._baseURL })
+    this._client = axios.create({
+      baseURL: this._baseURL,
+      // axios 1.20 builds every fetch Request with `cache: 'default'`, which
+      // Cloudflare Workers reject. With no Request constructor axios calls
+      // fetch(url, init) with only the options it was given. The Node (http)
+      // and browser (xhr) adapters ignore this. Remove once axios ships #11194.
+      env: { Request: null as unknown as undefined },
+    })
     axiosRetry(this._client, {
       retries: this._requestRetries,
       retryDelay: this._retryDelayFunc,
